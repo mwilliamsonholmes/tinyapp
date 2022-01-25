@@ -28,6 +28,17 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+//JSON string representing urlDatabase object
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
+
+//lists off the short URLs and their corresponding long URL in the database
+app.get("/urls", (req, res) => {
+  const templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
+});
+
 //form for creating  new tiny URL
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
@@ -40,11 +51,12 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${newShortURL}`);
 });
 
+
 //will redirect to the corresponding longURL
-app.get("/urls/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
-});
+// app.get("/urls/:shortURL", (req, res) => {
+//   const longURL = urlDatabase[req.params.shortURL];
+//   res.redirect(longURL);
+// });
 
 //route to handle shortURL requests
 app.get("/u/:shortURL", (req, res) => {
@@ -52,12 +64,6 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-
-//lists off the short URLs and their corresponding long URL in the database
-app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars);
-});
 
 //shows the long URL that corresponds to the short URL inputted 
 app.get("/urls/:shortURL", (req, res) => {
@@ -68,9 +74,12 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-//JSON string representing urlDatabase object
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+//add route that removes a URL resource
+app.post("/urls/:shortURL/delete", (req, res) => {
+  console.log("hello");
+  // delete urlDatabase[req.params.shortURL];
+  delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls");
 });
 
 // app.get("/hello", (req, res) => {
