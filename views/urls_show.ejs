@@ -20,6 +20,12 @@
           </a></p>
       </div>
       <div class="card-footer text-muted"></div>
+      <h5>Update</h5>
+      <form method="POST" action="/urls/<%=shortURL %>/">
+        <label for="newURL">New URL:</label>
+        <input name="newURL" type="text" />
+        <button type="submit" class="btn btn-outline-Warning">Submit</button>
+      </form>
     </div>
     <!-- Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
