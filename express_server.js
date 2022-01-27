@@ -209,17 +209,24 @@ app.get("/urls/:shortURL", (req, res) => {
 
 //add route that removes a URL resource
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
+  const shortKey = req.params.shortURL;
+  if (req.cookies.user_id === urlDatabase[shortKey].userID) {
+    delete urlDatabase[shortKey];
+    res.redirect("/urls");
+  } else {
+    res.status("401").send("You don't have permission to delete this URL.")
+  }
 });
 
 //add route that edits a URL
 app.post("/urls/:id", (req, res) => {
-  const shortURL = req.params.id;
-  // console.log(shortURL);
-  const newURL = req.body.newURL;
-  urlDatabase[shortURL]["longURL"] = newURL;
+  const shortKey = req.params.shortURL;
+  if (req.cookies.user_id === urlDatabase[shortKey].userID) {
+    urlDatabase[shortKey]["longURL"] = newURL;
   res.redirect("/urls");
+  } else {
+    res.status("401").send("You don't have permission to edit this URL.");
+  }
 });
 
 //allows users to login
