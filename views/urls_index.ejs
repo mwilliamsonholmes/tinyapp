@@ -17,7 +17,7 @@
 <body>
   <%- include('partials/_header') %>
     <main style="margin: 1em;">
-      <h3>My URLs</h3>
+      <h3>URLs</h3>
       <table class="table">
         <thead>
           <tr>
@@ -34,12 +34,12 @@
                 <%= url %>
               </td>
               <td>
-                <%= urls[url] %>
+                <%= urls[url].longURL %>
+              
               </td>
               <td>
-
-                <form method="POST" action="/urls/<%= url %> ">
-                  <button type=" submit" class="btn btn-outline-Warning">Edit</button>
+                <form method="GET" action="/urls/<%= url %> ">
+                  <button type="submit" class="btn btn-outline-Warning">Edit</button>
                 </form>
 
               </td>
