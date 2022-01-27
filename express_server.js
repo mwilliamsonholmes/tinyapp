@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 var cookieParser = require('cookie-parser')
+const bcrypt = require('bcryptjs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.set("view engine", "ejs");
@@ -128,7 +129,7 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
-//handle registration data
+//handle new registration data
 app.post("/register", (req, res) => {
   const newEmail = req.body.email;
   const newPassword = req.body.password;
@@ -141,7 +142,7 @@ app.post("/register", (req, res) => {
     users[newId] = {
       id: newId,
       email: newEmail,
-      password: newPassword
+      password: bcrypt.hashSync(newPassword, 10)
     };
     res.cookie("user_id", newId);
     res.redirect("/urls");
@@ -237,7 +238,7 @@ app.post("/login", (req, res) => {
     res.status(403).send("Sorry- there is no account registered with that email.");
   } else {
     const userId = userIdByEmail(userEmail, users);
-    if (userPassword !== users[userId].password) {
+    if (!bcrypt.compareSync(userPassword, users[userId].password)) {
       res.status(403).send("This password does not match the password we have on file.")
     } else {
       res.cookie("user_id", userId);
