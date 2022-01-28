@@ -1,12 +1,18 @@
 const express = require("express");
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080; 
 const bodyParser = require("body-parser");
 var cookieSession = require('cookie-session')
 const bcrypt = require('bcryptjs');
-app.use(bodyParser.urlencoded({ extended: true }));
-app.set("view engine", "ejs");
+
 const {userIdByEmail} = require("./helpers");
+
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.set("view engine", "ejs");
+
+
+
 app.use(cookieSession({
   name: 'session',
   keys: ["WHAT!?"],
@@ -56,26 +62,26 @@ const verifyUserCookie = function (id) {
 
 //user and urlDatabase objects//
 const users = {
-  "b8gk01": {
-    id: "b8gk01",
-    email: "melissa@example.com",
-    password: "hello"
-  }
+  // "b8gk01": {
+  //   id: "b8gk01",
+  //   email: "melissa@example.com",
+  //   password: "hello"
+  // }
 }
 
 
 const urlDatabase = {
-  "9sm5xK": {
-    longURL: "http://www.google.com",
-    userID: "b8gk01"
-  },
-  "bszawz": {
-    longURL: "https://www.lighthouselabs.ca",
-    userID: "7hnkdo"
-  }
+  // "9sm5xK": {
+  //   longURL: "http://www.google.com",
+  //   userID: "b8gk01"
+  // },
+  // "bszawz": {
+  //   longURL: "https://www.lighthouselabs.ca",
+  //   userID: "7hnkdo"
+  // }
 };
 
-//routes
+//ROUTES:
 
 //homepage
 app.get("/", (req, res) => {
@@ -90,7 +96,6 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   const currentUser = req.session.user_id;
   const userURLs = urlsForUser(currentUser, urlDatabase);
-  // console.log(urlsForUser(currentUser, urlDatabase));
   if (users[currentUser]) {
     const templateVars = {
       urls: userURLs,
@@ -102,7 +107,7 @@ app.get("/urls", (req, res) => {
   }
 });
 
-//form for creating  new tiny URL
+//form for creating new tiny URL
 app.get("/urls/new", (req, res) => {
   const currentUser = req.session.user_id;
   if (verifyUserCookie(currentUser)) {
@@ -125,62 +130,6 @@ app.get("/register", (req, res) => {
   }
   const templateVars = { user: currentUser };
   res.render("register", templateVars);
-});
-
-//handle new registration data
-app.post("/register", (req, res) => {
-  const newEmail = req.body.email;
-  const newPassword = req.body.password;
-  if (!newEmail || !newPassword) {
-    res.status(400).send("Please include a valid email and password :) ");
-  } else if (emailHasUser(newEmail, users)) {
-    res.status(400).send("Yikes- An account has already been created with this email!");
-  } else {
-    const newId = generateRandomString();
-    users[newId] = {
-      id: newId,
-      email: newEmail,
-      password: bcrypt.hashSync(newPassword, 10)
-    };
-    res.redirect("/urls");
-    req.session.user_id = newId;
-    console.log("users: ", users);
-  }
-});
-
-//JSON string representing urlDatabase object
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-
-//want to save shortURL/long URL pairs to the urlDatabase
-app.post("/urls", (req, res) => {
-  if (verifyUserCookie(req.session.user_id)) {
-    const newShortURL = generateRandomString();
-    const longURL = req.body.longURL;
-    urlDatabase[newShortURL] = {
-      longURL,
-      userID: req.session.user_id,
-    };
-    res.redirect(`/urls/${newShortURL}`);
-  } else {
-    res.status(401).send("Please log in to create URLs.")
-  }
-});
-
-
-//route to handle shortURL requests
-app.get("/u/:shortURL", (req, res) => {
-  // if (urlDatabase[req.params.shortURL]) {
-  const shortURL = req.params.shortURL;
-  if (!urlDatabase[shortURL]) {
-    res.status(404).send("This link does not exist.");
-  } else {
-    const longURL = urlDatabase[req.params.shortURL].longURL;
-    res.redirect(longURL);
-
-  }
 });
 
 //login form
@@ -210,27 +159,52 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 });
 
-//add route that removes a URL resource
-app.post("/urls/:shortURL/delete", (req, res) => {
-  const shortKey = req.params.shortURL;
-  if (req.session.user_id === urlDatabase[shortKey].userID) {
-    delete urlDatabase[shortKey];
-    res.redirect("/urls");
+//route to handle shortURL requests
+app.get("/u/:shortURL", (req, res) => {
+  // if (urlDatabase[req.params.shortURL]) {
+  const shortURL = req.params.shortURL;
+  if (!urlDatabase[shortURL]) {
+    res.status(404).send("This link does not exist.");
   } else {
-    res.status(401).send("You don't have permission to delete this URL.")
+    const longURL = urlDatabase[req.params.shortURL].longURL;
+    res.redirect(longURL);
+
   }
 });
 
-//edits a URL
-app.post("/urls/:id", (req, res) => {
-  const userID = req.params.user_id;
-  const userUrls = urlsForUser(userID, urlDatabase);
-  if (Object.keys(userUrls).includes(req.params.id)) {
-  const shortKey = req.params.id;
-    urlDatabase[shortKey].longURL = req.body.newURL;
-    res.redirect("/urls");
+//want to save shortURL/long URL pairs to the urlDatabase
+app.post("/urls", (req, res) => {
+  if (verifyUserCookie(req.session.user_id)) {
+    const newShortURL = generateRandomString();
+    const longURL = req.body.longURL;
+    urlDatabase[newShortURL] = {
+      longURL,
+      userID: req.session.user_id,
+    };
+    res.redirect(`/urls/${newShortURL}`);
   } else {
-    res.status(401).send("You don't have permission to edit this URL.");
+    res.status(401).send("Please log in to create URLs.")
+  }
+});
+
+//handle new registration data
+app.post("/register", (req, res) => {
+  const newEmail = req.body.email;
+  const newPassword = req.body.password;
+  if (!newEmail || !newPassword) {
+    res.status(400).send("Please include a valid email and password :) ");
+  } else if (emailHasUser(newEmail, users)) {
+    res.status(400).send("Yikes- An account has already been created with this email!");
+  } else {
+    const newId = generateRandomString();
+    users[newId] = {
+      id: newId,
+      email: newEmail,
+      password: bcrypt.hashSync(newPassword, 10)
+    };
+    res.redirect("/urls");
+    req.session.user_id = newId;
+    console.log("users: ", users);
   }
 });
 
@@ -259,6 +233,34 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 })
 
+//JSON string representing urlDatabase object
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
+
+//add route that removes a URL resource
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const shortKey = req.params.shortURL;
+  if (req.session.user_id === urlDatabase[shortKey].userID) {
+    delete urlDatabase[shortKey];
+    res.redirect("/urls");
+  } else {
+    res.status(401).send("You don't have permission to delete this URL.")
+  }
+});
+
+//edits a URL
+app.post("/urls/:id", (req, res) => {
+  const userID = req.params.user_id;
+  const userUrls = urlsForUser(userID, urlDatabase);
+  if (Object.keys(userUrls).includes(req.params.id)) {
+  const shortKey = req.params.id;
+    urlDatabase[shortKey].longURL = req.body.newURL;
+    res.redirect("/urls");
+  } else {
+    res.status(401).send("You don't have permission to edit this URL.");
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
