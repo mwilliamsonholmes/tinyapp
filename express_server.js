@@ -12,7 +12,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
 
-
 app.use(cookieSession({
   name: 'session',
   keys: ["WHAT!?"],
@@ -51,7 +50,6 @@ function generateRandomString() {
   return randomString;
 };
 
-
 const verifyUserCookie = function (id) {
   if (users[id]) {
     return true;
@@ -59,30 +57,11 @@ const verifyUserCookie = function (id) {
   return false;
 };
 
+const users = {};
 
-//user and urlDatabase objects//
-const users = {
-  // "b8gk01": {
-  //   id: "b8gk01",
-  //   email: "melissa@example.com",
-  //   password: "hello"
-  // }
-}
-
-
-const urlDatabase = {
-  // "9sm5xK": {
-  //   longURL: "http://www.google.com",
-  //   userID: "b8gk01"
-  // },
-  // "bszawz": {
-  //   longURL: "https://www.lighthouselabs.ca",
-  //   userID: "7hnkdo"
-  // }
-};
+const urlDatabase = {};
 
 //ROUTES:
-
 //homepage
 app.get("/", (req, res) => {
   const currentUser = users[req.session.user_id];
