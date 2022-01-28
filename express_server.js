@@ -2,13 +2,11 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-// var cookieParser = require('cookie-parser')
 var cookieSession = require('cookie-session')
 const bcrypt = require('bcryptjs');
 app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(cookieParser());
 app.set("view engine", "ejs");
-
+const {userIdByEmail} = require("./helpers");
 app.use(cookieSession({
   name: 'session',
   keys: ["WHAT!?"],
@@ -47,13 +45,6 @@ function generateRandomString() {
   return randomString;
 };
 
-const userIdByEmail = function (email, userDatabase) {
-  for (const user in userDatabase) {
-    if (userDatabase[user].email === email) {
-      return userDatabase[user].id;
-    }
-  }
-};
 
 const verifyUserCookie = function (id) {
   if (users[id]) {
