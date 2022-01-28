@@ -1,11 +1,11 @@
 const express = require("express");
 const app = express();
-const PORT = 8080; 
+const PORT = 8080;
 const bodyParser = require("body-parser");
 var cookieSession = require('cookie-session')
 const bcrypt = require('bcryptjs');
 
-const {userIdByEmail} = require("./helpers");
+const { userIdByEmail, urlsForUser, emailHasUser, generateRandomString } = require("./helpers");
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -21,34 +21,34 @@ app.use(cookieSession({
 //helper functions//
 
 //returns the URLs for a specific user
-const urlsForUser = function (id, urlDatabase) {
-  const userUrls = {};
-  for (const shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === id) {
-      userUrls[shortURL] = urlDatabase[shortURL];
-    }
-  }
-  return userUrls;
-};
+// const urlsForUser = function (id, urlDatabase) {
+//   const userUrls = {};
+//   for (const shortURL in urlDatabase) {
+//     if (urlDatabase[shortURL].userID === id) {
+//       userUrls[shortURL] = urlDatabase[shortURL];
+//     }
+//   }
+//   return userUrls;
+// };
 
-const emailHasUser = function (email, userDatabase) {
-  for (const user in userDatabase) {
-    if (userDatabase[user].email === email) {
-      return true;
-    }
-  }
-  return false;
-};
+// const emailHasUser = function (email, userDatabase) {
+//   for (const user in userDatabase) {
+//     if (userDatabase[user].email === email) {
+//       return true;
+//     }
+//   }
+//   return false;
+// };
 
-function generateRandomString() {
-  let randomString = "";
-  for (let i = 0; i < 6; i++) {
-    const randomCharCode = Math.floor(Math.random() * 26 + 97);
-    const randomChar = String.fromCharCode(randomCharCode);
-    randomString += randomChar;
-  }
-  return randomString;
-};
+// function generateRandomString() {
+//   let randomString = "";
+//   for (let i = 0; i < 6; i++) {
+//     const randomCharCode = Math.floor(Math.random() * 26 + 97);
+//     const randomChar = String.fromCharCode(randomCharCode);
+//     randomString += randomChar;
+//   }
+//   return randomString;
+// };
 
 const verifyUserCookie = function (id) {
   if (users[id]) {
@@ -233,7 +233,7 @@ app.post("/urls/:id", (req, res) => {
   const userID = req.params.user_id;
   const userUrls = urlsForUser(userID, urlDatabase);
   if (Object.keys(userUrls).includes(req.params.id)) {
-  const shortKey = req.params.id;
+    const shortKey = req.params.id;
     urlDatabase[shortKey].longURL = req.body.newURL;
     res.redirect("/urls");
   } else {
