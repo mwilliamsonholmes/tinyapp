@@ -112,7 +112,7 @@ app.get("/urls/new", (req, res) => {
     }
     res.render("urls_new", templateVars);
   } else {
-    res.status("401").send("Please log in.");
+    res.status(401).send("Please log in.");
     res.redirect("/login");
   }
 });
@@ -165,7 +165,7 @@ app.post("/urls", (req, res) => {
     };
     res.redirect(`/urls/${newShortURL}`);
   } else {
-    res.status("401").send("Please log in to create URLs.")
+    res.status(401).send("Please log in to create URLs.")
   }
 });
 
@@ -175,7 +175,7 @@ app.get("/u/:shortURL", (req, res) => {
   // if (urlDatabase[req.params.shortURL]) {
   const shortURL = req.params.shortURL;
   if (!urlDatabase[shortURL]) {
-    res.status("404").send("This link does not exist.");
+    res.status(404).send("This link does not exist.");
   } else {
     const longURL = urlDatabase[req.params.shortURL].longURL;
     res.redirect(longURL);
@@ -197,13 +197,17 @@ app.get("/login", (req, res) => {
 
 //shows the long URL that corresponds to the short URL inputted 
 app.get("/urls/:shortURL", (req, res) => {
-  const currentUser = users[req.session.user_id];
-  const templateVars = {
-    user: currentUser,
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL,
-  };
-  res.render("urls_show", templateVars);
+  if (urlDatabase[req.params.shortURL]) {
+    const templateVars = {
+      user: users[req.session.user_id],
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL,
+      urlUserID: urlDatabase[req.params.shortURL].userID,
+    };
+    res.render("urls_show", templateVars);
+  } else {
+    res.status(404).send("Hmm looks like this link doesn't exist..")
+  }
 });
 
 //add route that removes a URL resource
@@ -213,18 +217,20 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     delete urlDatabase[shortKey];
     res.redirect("/urls");
   } else {
-    res.status("401").send("You don't have permission to delete this URL.")
+    res.status(401).send("You don't have permission to delete this URL.")
   }
 });
 
-//add route that edits a URL
+//edits a URL
 app.post("/urls/:id", (req, res) => {
-  const shortKey = req.params.shortURL;
-  if (req.session.user_id === urlDatabase[shortKey].userID) {
-    urlDatabase[shortKey]["longURL"] = newURL;
+  const userID = req.params.user_id;
+  const userUrls = urlsForUser(userID, urlDatabase);
+  if (Object.keys(userUrls).includes(req.params.id)) {
+  const shortKey = req.params.id;
+    urlDatabase[shortKey].longURL = req.body.newURL;
     res.redirect("/urls");
   } else {
-    res.status("401").send("You don't have permission to edit this URL.");
+    res.status(401).send("You don't have permission to edit this URL.");
   }
 });
 
@@ -249,7 +255,7 @@ app.post("/login", (req, res) => {
 app.post("/logout", (req, res) => {
   const userEmail = req.body.email;
   const userId = userIdByEmail(userEmail, users);
-  req.session.user_id = null;
+  req.session = null;
   res.redirect("/urls");
 })
 
