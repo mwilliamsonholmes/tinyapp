@@ -93,8 +93,16 @@ app.get("/login", (req, res) => {
   res.render("login", templateVars);
 })
 
-//shows the long URL that corresponds to the short URL inputted 
 app.get("/urls/:shortURL", (req, res) => {
+  const currentUser = req.session.user_id;
+  const shortURL = req.params.shortURL;
+  if (!verifyUserCookie(currentUser)) {
+    res.status(401).send("Please log in.");
+    res.redirect("/login");
+  }
+  if (urlDatabase[shortURL].userID !== req.session.user_id) {
+    res.status(401).send("You don't have permission to view this.");
+  }
   if (urlDatabase[req.params.shortURL]) {
     const templateVars = {
       user: users[req.session.user_id],
@@ -108,6 +116,7 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 });
 
+
 //route to handle shortURL requests
 app.get("/u/:shortURL", (req, res) => {
   // if (urlDatabase[req.params.shortURL]) {
@@ -120,6 +129,7 @@ app.get("/u/:shortURL", (req, res) => {
 
   }
 });
+
 
 //want to save shortURL/long URL pairs to the urlDatabase
 app.post("/urls", (req, res) => {
@@ -200,7 +210,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 //edits a URL
 app.post("/urls/:id", (req, res) => {
-  const userID = req.params.user_id;
+  const userID = req.session.user_id;
   const userUrls = urlsForUser(userID, urlDatabase);
   if (Object.keys(userUrls).includes(req.params.id)) {
     const shortKey = req.params.id;
